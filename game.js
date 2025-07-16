@@ -13,7 +13,8 @@ const COLORS = {
     gray: "#787878",
     orange: "#ff8c28",
     brown: "#8b4513",
-    purple: "#a020f0"
+    purple: "#a020f0",
+    navy: "#1a237e"
 };
 
 const DANICH_SIZE = 70;
@@ -167,7 +168,7 @@ class Danich {
             let line = lines[Math.floor(Math.random() * lines.length)];
             if (line !== this.lastVoice) {
                 this.lastVoice = line;
-                this.voiceMessages.push({ text: line, timer: 120 });
+                this.voiceMessages.push({ text: line, timer: 240 });
                 return line;
             }
         }
@@ -352,7 +353,7 @@ class MessageLog {
     }
     add(msg) {
         this.lines.push(msg);
-        this.fadeTimers.push(120);
+        this.fadeTimers.push(240);
         if (this.lines.length > this.maxLines) {
             this.lines.shift();
             this.fadeTimers.shift();
@@ -365,13 +366,13 @@ class MessageLog {
             this.lines.shift();
         }
     }
-    draw(ctx, base_x, base_y, color = COLORS.yellow) {
+    draw(ctx, base_x, base_y) {
         for (let i = 0; i < this.lines.length; ++i) {
             let alpha = clamp(Math.round(255 * this.fadeTimers[i] / 120), 0, 255);
             ctx.save();
             ctx.globalAlpha = alpha / 255;
             ctx.font = "20px Comic Sans MS";
-            ctx.fillStyle = color;
+            ctx.fillStyle = COLORS.navy;
             ctx.fillText(this.lines[i], base_x, base_y + i * 28);
             ctx.restore();
         }
@@ -475,7 +476,7 @@ function gameLoop() {
         drawHpBar(ctx, 30, 30, 300, 32, danich.hpPercent);
     // Heals (ниже полоски HP)
     ctx.font = "bold 32px Comic Sans MS";
-    ctx.fillStyle = COLORS.black;
+    ctx.fillStyle = COLORS.white;
     ctx.fillText(`Лечений: ${danich.healCount}`, 30, 90);
     // Реплики Данича
     let base_x = 350, base_y = 30;
@@ -485,12 +486,12 @@ function gameLoop() {
         ctx.save();
         ctx.globalAlpha = alpha / 255;
         ctx.font = "28px Comic Sans MS";
-        ctx.fillStyle = COLORS.black;
+        ctx.fillStyle = COLORS.navy;
         ctx.fillText(messagesToDraw[i].text, base_x, base_y + i * 36 + 28);
         ctx.restore();
     }
     // Лог
-    msgLog.draw(ctx, base_x, base_y + messagesToDraw.length * 36 + 10, COLORS.black);
+    msgLog.draw(ctx, base_x, base_y + messagesToDraw.length * 36 + 10);
     // Граница
     ctx.strokeStyle = COLORS.white;
     ctx.lineWidth = 4;
@@ -518,18 +519,18 @@ function gameLoop() {
     // Game Over
     if (gameOver) {
         ctx.font = "bold 36px Comic Sans MS";
-        ctx.fillStyle = COLORS.black;
+        ctx.fillStyle = COLORS.yellow;
         if (gameOverPhrase) {
             ctx.fillText(gameOverPhrase, WIDTH / 2 - ctx.measureText(gameOverPhrase).width / 2, HEIGHT / 2 - 100);
         }
         ctx.font = "bold 36px Comic Sans MS";
-        ctx.fillStyle = COLORS.black;
+        ctx.fillStyle = COLORS.red;
         ctx.fillText("GAME OVER!", WIDTH / 2 - ctx.measureText("GAME OVER!").width / 2, HEIGHT / 2 - 60);
         ctx.font = "bold 32px Comic Sans MS";
-        ctx.fillStyle = COLORS.black;
+        ctx.fillStyle = COLORS.yellow;
         ctx.fillText(`Final Heals: ${danich.healCount}`, WIDTH / 2 - ctx.measureText(`Final Heals: ${danich.healCount}`).width / 2, HEIGHT / 2);
         ctx.font = "20px Comic Sans MS";
-        ctx.fillStyle = COLORS.black;
+        ctx.fillStyle = COLORS.white;
         ctx.fillText("Press R to Restart or ESC to Quit", WIDTH / 2 - ctx.measureText("Press R to Restart or ESC to Quit").width / 2, HEIGHT / 2 + 40);
     }
 
