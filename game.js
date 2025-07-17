@@ -43,11 +43,28 @@ class Danich {
         let angle = Math.random() * 2 * Math.PI;
         this.dx = Math.cos(angle);
         this.dy = Math.sin(angle);
+        this.distanceTraveled = 0;
+        this.distanceThisSecond = 0;
+        this.secondTimer = 0;
     }
     update() {
         if (!this.isAlive) return;
+        // Сохраняем предыдущие координаты
+        let prevX = this.x, prevY = this.y;
         this.x += this.speed * this.dx;
         this.y += this.speed * this.dy;
+        // Считаем пройденное расстояние за кадр
+        let d = Math.hypot(this.x - prevX, this.y - prevY);
+        this.distanceTraveled += d;
+        this.distanceThisSecond += d;
+        this.secondTimer++;
+        if (this.secondTimer >= FPS) {
+            // Урон за секунду
+            let damage = this.distanceThisSecond * 0.00005 * DANICH_MAX_HP; // 0.0001% за пиксель
+            this.takeDamage(damage);
+            this.distanceThisSecond = 0;
+            this.secondTimer = 0;
+        }
         // Границы
         if (this.x - this.size / 2 < 0) { this.x = this.size / 2; this.dx *= -1; }
         if (this.x + this.size / 2 > WIDTH) { this.x = WIDTH - this.size / 2; this.dx *= -1; }
@@ -404,8 +421,8 @@ function gameLoop() {
     // --- Update ---
     if (!gameOver) {
         danich.update();
-        // Здоровье убывает медленнее
-        danich.takeDamage((0.05 + 0.01 * (performance.now() / 10000)) / 1.5);
+       
+     
         let line = danich.getVoiceLine();
         if (!danich.isAlive) {
             gameOver = true;
@@ -575,11 +592,12 @@ canvas.addEventListener("mousedown", function (e) {
             slipNextHeal += 5;
             msgLog.add("Слип убран!");
         }
-    } else if (!hpPurpleTimer && (!lampPost || !(lampPost.active && lampPost.coversDanich(danich))) && danich.isAlive && dist(mx, my, danich.x, danich.y) < danich.size / 2) {
-        danich.heal(15);
-        msgLog.add("Да хилю, не видишь что ли!!!");
-    } else if (lampPost && lampPost.active && lampPost.coversDanich(danich)) {
-        if (dist(mx, my, danich.x, danich.y) < danich.size / 2) {
+    } else if (danich.isAlive && dist(mx, my, danich.x, danich.y) < danich.size / 2) {
+        // ИСПРАВЛЕНИЕ: Теперь клик по Даничу всегда регистрируется, если он жив
+        if (!hpPurpleTimer && (!lampPost || !(lampPost.active && lampPost.coversDanich(danich)))) {
+            danich.heal(15);
+            msgLog.add("Да хилю, не видишь что ли!!!");
+        } else if (lampPost && lampPost.active && lampPost.coversDanich(danich)) {
             msgLog.add("Да столб блять!");
         }
     }
